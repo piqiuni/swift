@@ -1,7 +1,7 @@
 # Experimental environment: A10, 3090, V100, ...
 # 20GB GPU memory
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
 os.environ['NPROC_PER_NODE'] = '2'
 
@@ -13,11 +13,16 @@ from swift.llm import (
 )
 
 model_type = ModelType.qwen_vl
+# mini
 custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
+# full
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+
 sft_args = SftArguments(
     model_type=model_type,
     train_dataset_sample=2000,
     custom_train_dataset_path=custom_train_dataset_path,
+    num_train_epochs = 3,
     output_dir='./output')
 result = sft_main(sft_args)
 best_model_checkpoint = result['best_model_checkpoint']

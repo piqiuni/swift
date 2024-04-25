@@ -4,6 +4,8 @@ cd pi_code/swift/
 conda activate swift
 ```
 
+https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation?tab=readme-ov-file
+
 ## Fine-tuning the model
 运行
 ```bash
@@ -23,6 +25,12 @@ python pi_code/fine_tune_qwen_vl.py
 
 `output/qwen-vl`
 
+报错处理：
+```bash
+export NCCL_IB_DISABLE=1
+export NCCL_P2P_DISABLE=1
+```
+
 
 ## Infer
 命令行运行——存在问题，无法调用测试集，无法保存为期望格式
@@ -37,6 +45,16 @@ Python运行
 cd ~/pi_code/swift
 python pi_code/infer_qwen_vl.py
 ```
+
+## Eval
+```bash
+conda activate llama_adapter_v2
+cd ~/pi_code/DriveLM/challenge
+python evaluation.py --root_path1 ../../swift/pi_code/output_0425.json --root_path2 ./mini_test_eval.json
+```
+修改 `--root_path1`
+
+
 
 # TODO:
 ## 运行推理
