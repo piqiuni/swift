@@ -63,6 +63,8 @@ python evaluation.py --root_path1 ../../swift/pi_code/output_0425.json --root_pa
 参考：
 [Qwen-VL 最佳实践](https://github.com/modelscope/swift/blob/main/docs/source/Multi-Modal/qwen-vl%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5.md)——给出基础的推理代码，无法解决问题
 
+[命令行参数](https://github.com/modelscope/swift/blob/main/docs/source/LLM/%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0.md)
+
 [LLM推理文档](https://github.com/modelscope/swift/blob/main/docs/source/LLM/LLM%E6%8E%A8%E7%90%86%E6%96%87%E6%A1%A3.md#qwen-vl-chat)——参考qwen-7b的对话方式，修改推理代码
 
 

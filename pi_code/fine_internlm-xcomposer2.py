@@ -12,7 +12,8 @@ from swift.llm import (
     infer_main, sft_main, app_ui_main, merge_lora
 )
 
-model_type = ModelType.qwen_vl
+model_type = ModelType.internlm_xcomposer2_7b
+
 # mini
 # custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
