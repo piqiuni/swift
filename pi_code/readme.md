@@ -50,7 +50,7 @@ python pi_code/infer_qwen_vl.py
 ```bash
 conda activate llama_adapter_v2
 cd ~/pi_code/DriveLM/challenge
-python evaluation.py --root_path1 ../../swift/pi_code/output_0425.json --root_path2 ./mini_test_eval.json
+python evaluation.py --root_path1 ../../swift/pi_code/output/output_0425.json --root_path2 ./mini_test_eval.json
 ```
 修改 `--root_path1`
 

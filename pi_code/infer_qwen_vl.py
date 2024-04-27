@@ -13,6 +13,7 @@ import json
 now = datetime.now()
 ckpt_dir = '/home/ldl/pi_code/swift/output/qwen-vl/v6-20240421-110548/checkpoint-71' #加载模型路径
 infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/mini_trainning_llama.json' #加载数据集路径
+# infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/test_val_llama.json'
 
 file_name = f"output_{now.strftime('%m%d_%H%M')}.json"
 save_path = os.path.join('./output', file_name)
