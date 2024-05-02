@@ -12,9 +12,9 @@ import torch.distributed as dist
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import transformers
-from modelscope import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
-                        BitsAndBytesConfig, GenerationConfig, GPTQConfig,
-                        snapshot_download)
+from modelscope import (AutoConfig, AutoModel, AutoModelForCausalLM,
+                        AutoTokenizer, BitsAndBytesConfig, GenerationConfig,
+                        GPTQConfig, snapshot_download)
 from modelscope.hub.utils.utils import get_cache_dir
 from packaging import version
 from torch import Tensor
@@ -25,6 +25,7 @@ from transformers.dynamic_module_utils import get_class_from_dynamic_module
 from transformers.models.auto.tokenization_auto import get_tokenizer_config
 from transformers.utils import strtobool
 from transformers.utils.versions import require_version
+from trl.import_utils import is_unsloth_available
 
 from swift import get_logger
 from swift.utils import (get_dist_setting, is_dist, is_local_master,
@@ -66,6 +67,7 @@ class ModelType:
     qwen1half_14b = 'qwen1half-14b'
     qwen1half_32b = 'qwen1half-32b'
     qwen1half_72b = 'qwen1half-72b'
+    qwen1half_110b = 'qwen1half-110b'
     codeqwen1half_7b = 'codeqwen1half-7b'
     qwen1half_moe_a2_7b = 'qwen1half-moe-a2_7b'
     qwen1half_0_5b_chat = 'qwen1half-0_5b-chat'
@@ -75,6 +77,7 @@ class ModelType:
     qwen1half_14b_chat = 'qwen1half-14b-chat'
     qwen1half_32b_chat = 'qwen1half-32b-chat'
     qwen1half_72b_chat = 'qwen1half-72b-chat'
+    qwen1half_110b_chat = 'qwen1half-110b-chat'
     qwen1half_moe_a2_7b_chat = 'qwen1half-moe-a2_7b-chat'
     codeqwen1half_7b_chat = 'codeqwen1half-7b-chat'
 
@@ -86,6 +89,7 @@ class ModelType:
     qwen1half_14b_chat_int4 = 'qwen1half-14b-chat-int4'
     qwen1half_32b_chat_int4 = 'qwen1half-32b-chat-int4'
     qwen1half_72b_chat_int4 = 'qwen1half-72b-chat-int4'
+    qwen1half_110b_chat_int4 = 'qwen1half-110b-chat-int4'
     qwen1half_0_5b_chat_int8 = 'qwen1half-0_5b-chat-int8'
     qwen1half_1_8b_chat_int8 = 'qwen1half-1_8b-chat-int8'
     qwen1half_4b_chat_int8 = 'qwen1half-4b-chat-int8'
@@ -102,6 +106,7 @@ class ModelType:
     qwen1half_14b_chat_awq = 'qwen1half-14b-chat-awq'
     qwen1half_32b_chat_awq = 'qwen1half-32b-chat-awq'
     qwen1half_72b_chat_awq = 'qwen1half-72b-chat-awq'
+    qwen1half_110b_chat_awq = 'qwen1half-110b-chat-awq'
     codeqwen1half_7b_chat_awq = 'codeqwen1half-7b-chat-awq'
 
     # qwen-vl
@@ -198,6 +203,8 @@ class ModelType:
     internlm2_math_20b_chat = 'internlm2-math-20b-chat'
     # internlm-xcomposer2
     internlm_xcomposer2_7b_chat = 'internlm-xcomposer2-7b-chat'
+    # internvl
+    internvl_chat_v1_5 = 'internvl-chat-v1_5'
     # deepseek
     deepseek_7b = 'deepseek-7b'
     deepseek_7b_chat = 'deepseek-7b-chat'
@@ -791,17 +798,29 @@ def get_model_tokenizer_from_repo(model_dir: str,
         tokenizer.eos_token = eos_token
     model = None
     if load_model:
-        with context:
-            model = automodel_class.from_pretrained(
-                model_dir,
-                config=model_config,
-                torch_dtype=torch_dtype,
+        if kwargs.get('use_unsloth', False):
+            assert is_unsloth_available(
+            ), 'please install unsloth if using `use_unsloth=True`'
+            from unsloth import FastLanguageModel
+            model, tokenizer = FastLanguageModel.from_pretrained(
+                model_name=model_dir,
+                max_seq_length=kwargs.get('max_length', None),
+                dtype=torch_dtype,
+                load_in_4bit=kwargs.get('load_in_4bit', True),
                 trust_remote_code=True,
-                **model_kwargs)
-    if load_model and is_awq:
-        model.is_awq = is_awq
-    if load_model and gptq_bits > 0:
-        model.gptq_bits = gptq_bits
+            )
+        else:
+            with context:
+                model = automodel_class.from_pretrained(
+                    model_dir,
+                    config=model_config,
+                    torch_dtype=torch_dtype,
+                    trust_remote_code=True,
+                    **model_kwargs)
+        if load_model and is_awq:
+            model.is_awq = is_awq
+        if load_model and gptq_bits > 0:
+            model.gptq_bits = gptq_bits
     return model, tokenizer
 
 
@@ -919,6 +938,7 @@ def get_model_tokenizer_mamba(model_dir: str,
     LoRATM.cogagent,
     TemplateType.cogagent_chat,
     support_gradient_checkpointing=False,
+    requires=['timm'],
     tags=['multi-modal', 'vision'],
     hf_model_id='THUDM/cogagent-chat-hf')
 @register_model(
@@ -927,6 +947,7 @@ def get_model_tokenizer_mamba(model_dir: str,
     LoRATM.cogagent,
     TemplateType.cogagent_instruct,
     support_gradient_checkpointing=False,
+    requires=['timm'],
     tags=['multi-modal', 'vision'],
     hf_model_id='THUDM/cogagent-vqa-hf')
 def get_model_tokenizer_cogagent(model_dir: str,
@@ -1460,6 +1481,15 @@ def get_model_tokenizer_chatglm(model_dir: str,
     requires=['transformers>=4.37'],
     hf_model_id='Qwen/Qwen1.5-72B')
 @register_model(
+    ModelType.qwen1half_110b,
+    'qwen/Qwen1.5-110B',
+    LoRATM.qwen1half,
+    TemplateType.default_generation,
+    support_flash_attn=True,
+    support_vllm=True,
+    requires=['transformers>=4.37'],
+    hf_model_id='Qwen/Qwen1.5-110B')
+@register_model(
     ModelType.codeqwen1half_7b,
     'qwen/CodeQwen1.5-7B',
     LoRATM.qwen1half,
@@ -1970,6 +2000,17 @@ def get_model_tokenizer_with_flash_attn(model_dir: str,
     torch_dtype=torch.float16,
     hf_model_id='Qwen/Qwen1.5-72B-Chat-AWQ')
 @register_model(
+    ModelType.qwen1half_110b_chat_awq,
+    'qwen/Qwen1.5-110B-Chat-AWQ',
+    LoRATM.qwen1half,
+    TemplateType.qwen,
+    support_flash_attn=True,
+    support_vllm=True,
+    function_kwargs={'is_awq': True},
+    requires=['transformers>=4.37', 'autoawq'],
+    torch_dtype=torch.float16,
+    hf_model_id='Qwen/Qwen1.5-110B-Chat-AWQ')
+@register_model(
     ModelType.codeqwen1half_7b_chat_awq,
     'qwen/CodeQwen1.5-7B-Chat-AWQ',
     LoRATM.qwen1half,
@@ -2043,6 +2084,15 @@ def get_model_tokenizer_with_flash_attn(model_dir: str,
     support_vllm=True,
     requires=['transformers>=4.37'],
     hf_model_id='Qwen/Qwen1.5-72B-Chat')
+@register_model(
+    ModelType.qwen1half_110b_chat,
+    'qwen/Qwen1.5-110B-Chat',
+    LoRATM.qwen1half,
+    TemplateType.qwen,
+    support_flash_attn=True,
+    support_vllm=True,
+    requires=['transformers>=4.37'],
+    hf_model_id='Qwen/Qwen1.5-110B-Chat')
 @register_model(
     ModelType.qwen1half_moe_a2_7b_chat,
     'qwen/Qwen1.5-MoE-A2.7B-Chat',
@@ -2199,6 +2249,17 @@ def get_model_tokenizer_qwen1half(model_dir: str,
     support_flash_attn=True,
     support_vllm=True,
     hf_model_id='Qwen/Qwen1.5-72B-Chat-GPTQ-Int4')
+@register_model(
+    ModelType.qwen1half_110b_chat_int4,
+    'qwen/Qwen1.5-110B-Chat-GPTQ-Int4',
+    LoRATM.qwen1half,
+    TemplateType.qwen,
+    requires=['auto_gptq>=0.5', 'transformers>=4.37'],
+    torch_dtype=torch.float16,
+    function_kwargs={'gptq_bits': 4},
+    support_flash_attn=True,
+    support_vllm=True,
+    hf_model_id='Qwen/Qwen1.5-110B-Chat-GPTQ-Int4')
 @register_model(
     ModelType.qwen1half_72b_chat_int8,
     'qwen/Qwen1.5-72B-Chat-GPTQ-Int8',
@@ -2403,6 +2464,123 @@ def get_model_tokenizer_internlm2(model_dir: str,
     return model, tokenizer
 
 
+def fix_internvl_inplace_bug(model) -> None:
+
+    embedding = model.language_model.get_input_embeddings()
+    if not hasattr(embedding, '__old_forward'):  # Avoid double patching
+        if hasattr(embedding, '_old_forward'):  # device_map
+            __old_forward = embedding._old_forward
+            embedding._old_forward = lambda *args, **kwargs: __old_forward(
+                *args, **kwargs).requires_grad_(True).clone()
+        else:
+            __old_forward = embedding.forward
+            embedding.forward = lambda *args, **kwargs: __old_forward(
+                *args, **kwargs).requires_grad_(True).clone()
+        embedding.__old_forward = __old_forward
+
+
+@register_model(
+    ModelType.internvl_chat_v1_5,
+    'AI-ModelScope/InternVL-Chat-V1-5',
+    LoRATM.internlm2,
+    TemplateType.internvl,
+    requires=['transformers>=4.35'],
+    support_flash_attn=True,
+    support_gradient_checkpointing=False,
+    hf_model_id='OpenGVLab/InternVL-Chat-V1-5')
+def get_model_tokenizer_internvl(model_dir: str,
+                                 torch_dtype: Dtype,
+                                 model_kwargs: Dict[str, Any],
+                                 load_model: bool = True,
+                                 **kwargs):
+
+    model_config = AutoConfig.from_pretrained(
+        model_dir, trust_remote_code=True)
+    use_flash_attn = kwargs.pop('use_flash_attn', False)
+    if use_flash_attn:
+        model_config.attn_implementation = 'flash_attention_2'
+
+    model, tokenizer = get_model_tokenizer_from_repo(
+        model_dir,
+        torch_dtype,
+        model_kwargs,
+        load_model,
+        model_config=model_config,
+        automodel_class=AutoModel,
+        **kwargs)
+
+    if model is not None:
+        _use_submodel_func(model, 'language_model', ['get_input_embeddings'])
+        fix_internvl_inplace_bug(model)
+        if not hasattr(model, '__old_forward'):  # Avoid double patching
+            forward = model.forward
+            model.__old_forward = forward
+
+            @wraps(forward)
+            def _new_forward(*args, **kwargs):
+                kwargs.pop('inputs_embeds', None)
+                return forward(*args, **kwargs)
+
+            model.forward = _new_forward
+
+        if not hasattr(model, '__old_generate'):
+            generate = model.generate
+            model.__old_generate = generate
+
+            @wraps(generate)
+            def _new_generate(*args, **kwargs):
+                kwargs.pop('image_flags', None)
+                return generate(*args, **kwargs)
+
+            model.generate = _new_generate
+
+        if not hasattr(model, '_old_extract_feature'):
+            extract_feature = model.extract_feature
+            model._old_extract_feature = extract_feature
+
+            @wraps(extract_feature)
+            def _new_extract_feature(pixel_values):
+                return extract_feature(pixel_values).to(pixel_values.device)
+
+            model.extract_feature = _new_extract_feature
+
+        if not hasattr(model.language_model,
+                       '__old_forward'):  # Avoid double patching
+            old_forward = model.language_model.forward
+            model.language_model.__old_forward = old_forward
+
+            @wraps(old_forward)
+            def _new_forward(*args, **kwargs):
+                input_ids = kwargs.get('input_ids', None)
+                input_embeds = kwargs.get('inputs_embeds', None)
+                device = input_ids.device if input_ids is not None else input_embeds.device
+                output = old_forward(*args, **kwargs)
+                output['logits'] = output['logits'].to(device)
+                return output
+
+            model.language_model.forward = _new_forward
+
+        IMG_CONTEXT_TOKEN = '<IMG_CONTEXT>'
+        img_context_token_id = tokenizer.convert_tokens_to_ids(
+            IMG_CONTEXT_TOKEN)
+        model.img_context_token_id = img_context_token_id
+        if not hasattr(model.config, 'hidden_size'):
+            model.config.hidden_size = model.config.llm_config.hidden_size
+    # fix single GPU bug
+    if not hasattr(dist, '_old_get_rank'):
+        get_rank = dist.get_rank
+
+        @wraps(get_rank)
+        def new_get_rank(group=None):
+            if not dist.is_initialized() or dist.get_world_size() == 1:
+                return -1
+            return get_rank(group)
+
+        dist.get_rank = new_get_rank
+        dist._old_get_rank = get_rank
+    return model, tokenizer
+
+
 @register_model(
     ModelType.internlm_xcomposer2_7b_chat,
     'Shanghai_AI_Laboratory/internlm-xcomposer2-7b',
@@ -2434,9 +2612,31 @@ def get_model_tokenizer_internlm_xcomposer2(model_dir: str,
         if getattr(tokenizer.__class__.eos_token_id, 'fset', None) is None:
             del tokenizer.__class__.eos_token_id
         tokenizer.eos_token = eos_token
-    if model is not None and use_flash_attn:
-        # fix AttributeError: no attribute 'attention_dropout'
-        model.model.layers[0].attention.__class__.attention_dropout = 0.
+    if model is not None:
+        if use_flash_attn:
+            # fix AttributeError: no attribute 'attention_dropout'
+            model.model.layers[0].attention.__class__.attention_dropout = 0.
+
+        model_cls = model.__class__
+        if not hasattr(model_cls, '__old_encode_img'):  # avoid double patching
+            model_cls.__old_encode_img = model_cls.encode_img
+
+            def _new_encode_img(self, image):
+                if image is None:
+                    return None
+                if isinstance(image, str):
+                    from PIL import Image
+                    image = Image.open(image).convert('RGB')
+                    image = self.vis_processor(image).unsqueeze(0).to(
+                        self.device)
+                else:
+                    assert isinstance(image, torch.Tensor)
+
+                img_embeds, atts_img, img_target = self.img2emb(image)
+                return img_embeds.to(device=self.device)  # FIX device_map
+
+            model_cls.encode_img = _new_encode_img
+
     return model, tokenizer
 
 
