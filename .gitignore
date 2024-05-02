@@ -1,3 +1,5 @@
+samples/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -125,6 +127,7 @@ result.png
 result.jpg
 result.mp4
 output/
+ckp_output/
 *.out
 
 # Pytorch

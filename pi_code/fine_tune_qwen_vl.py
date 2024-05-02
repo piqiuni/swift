@@ -1,9 +1,18 @@
 # Experimental environment: A10, 3090, V100, ...
 # 20GB GPU memory
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
-os.environ['NPROC_PER_NODE'] = '2'
+
+use_one_gpu = True
+if use_one_gpu:
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['NPROC_PER_NODE'] = '1'
+else:
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
+    os.environ['NPROC_PER_NODE'] = '2'
+
+os.environ['NCCL_IB_DISABLE'] = '1'
+os.environ['NCCL_P2P_DISABLE'] = '1'
+
 
 import torch
 
@@ -14,30 +23,34 @@ from swift.llm import (
 
 model_type = ModelType.qwen_vl
 # mini
-# custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
+custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
-custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+
+
 
 sft_args = SftArguments(
     model_type=model_type,
     train_dataset_sample=-1,
     custom_train_dataset_path=custom_train_dataset_path,
-    num_train_epochs = 2,
-    eval_steps = 200,
-    resume_from_checkpoint = 'output/qwen-vl/v8-20240425-233946/checkpoint-2400',
+    num_train_epochs = 1,
+    eval_steps = 10,
+    # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
     # save_only_model = False,
-    output_dir='./output')
+    max_length=4096,
+    output_dir='./ckp_output')
+# assert os.path.exists(sft_args.output_dir)
 result = sft_main(sft_args)
 best_model_checkpoint = result['best_model_checkpoint']
 print(f'best_model_checkpoint: {best_model_checkpoint}')
 torch.cuda.empty_cache()
 
-infer_args = InferArguments(
-    ckpt_dir=best_model_checkpoint,
-    load_dataset_config=True,
-    val_dataset_sample=10)
-# merge_lora(infer_args, device_map='cpu')
-result = infer_main(infer_args)
-torch.cuda.empty_cache()
+# infer_args = InferArguments(
+#     ckpt_dir=best_model_checkpoint,
+#     load_dataset_config=True,
+#     val_dataset_sample=10)
+# # merge_lora(infer_args, device_map='cpu')
+# result = infer_main(infer_args)
+# torch.cuda.empty_cache()
 
-app_ui_main(infer_args)
+# app_ui_main(infer_args)
