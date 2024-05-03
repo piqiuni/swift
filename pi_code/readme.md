@@ -77,7 +77,7 @@ Ref: 文件格式参考
    修改`/home/ldl/pi_code/DriveLM/challenge/pi_test/pi_transfer_data_history.py`文件实现训练数据转换
    1. 修改图片路径————减小图片路径输入length  
         原始`data/nuscenes/samples`
-        新路径`~/samples`  
+        新路径`<img>samples/CAM_FRONT/n008-2018-09-18-13-10-39-0400__CAM_FRONT__1537291010612404.jpg</img>`  
    2. 修改  
         具体要求参见`pi_transfer_data_history.py`前部分注释
         目的，引入60帧滑动窗口，将历史数据输入训练，仅考虑每个frame关键帧中的历史问答数据
@@ -85,7 +85,7 @@ Ref: 文件格式参考
         
         ```
     
-2. 模型微调处理
+2. 模型微调处理——暂不修改
    1. 修改模型为`ModelType.internlm_xcomposer2_7b_chat`——更强的上下文理解能力
    2. 模型`max_length=4096,`
    

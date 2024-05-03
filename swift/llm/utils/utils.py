@@ -709,6 +709,32 @@ def inference(model: PreTrainedModel,
         history[-1][-1] = history[-1][-1] + response
     return response, history
 
+def get_length(model: PreTrainedModel,
+              template: Template,
+              query: str,):
+        
+    stop_words = []
+        
+    example = {
+        'query': query,
+    }
+    template.model = model
+    inputs, tokenizer_kwargs = template.encode(example)
+    if len(inputs) == 0:
+        raise ValueError(
+            'input_ids exceeds `max_length`. Please increase the value of `max_length`.'
+        )
+    inputs.pop('labels', None)
+    
+    if 'input_ids' in inputs:
+        input_ids = torch.tensor(inputs['input_ids'])[None]
+        inputs['input_ids'] = input_ids
+        token_len = input_ids.shape[1]
+    if 'inputs_embeds' in inputs:
+        inputs_embeds = inputs['inputs_embeds'][None]
+        inputs['inputs_embeds'] = inputs_embeds
+        token_len = inputs_embeds.shape[1]
+    return token_len
 
 def limit_history_length(template: Template, query: str,
                          history: Optional[History],

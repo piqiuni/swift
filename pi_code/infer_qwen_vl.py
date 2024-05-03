@@ -61,6 +61,7 @@ output_file = []
 # 循环提取每个段落的 conversations[0][value] 值
 history = []
 last_id_head = None
+# for i in tqdm(range(len(data[:]))):
 for i in tqdm(range(len(data[:500]))):
     paragraph = data[i]
     ids = paragraph["conversations"][0]["id"]
@@ -73,19 +74,18 @@ for i in tqdm(range(len(data[:500]))):
     last_line = lines[-1].split("/n")[-1]
     # value = "\n".join(lines[:-1])
     # print(value)
-    # value = lines[-1]
     if model_type == ModelType.qwen_vl:
         response, history = inference(model, template, value)
     elif model_type == ModelType.qwen_vl_chat:
         his_length = len(history)
         start_index = max(0, his_length - max_his_length)
         history = history[start_index:]
-        print(history)
-        print(value)
-        print(f"token len:{get_length(model, template, str(history))}, {get_length(model, template, value)}")
+        # print(history)
+        # print(value)
+        # print(f"token len:{get_length(model, template, str(history))}, {get_length(model, template, value)}")
         response, _ = inference(model, template, value, history)
-        print(response)
-        print("-------")
+        # print(response)
+        # print("-------")
         qa = [last_line, response]
         history.append(qa)
         # print(value)

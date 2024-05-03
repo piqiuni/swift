@@ -4,12 +4,12 @@ import os
 
 use_one_gpu = False
 if use_one_gpu:
-    raise "OOM Error"
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    # raise "OOM Error"
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     os.environ['NPROC_PER_NODE'] = '1'
 else:
     os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
-    # os.environ['NPROC_PER_NODE'] = '2'
+    os.environ['NPROC_PER_NODE'] = '1'
 
 os.environ['NCCL_IB_DISABLE'] = '1'
 os.environ['NCCL_P2P_DISABLE'] = '1'

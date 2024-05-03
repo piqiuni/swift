@@ -2,7 +2,7 @@
 # 20GB GPU memory
 import os
 
-use_one_gpu = True
+use_one_gpu = False
 if use_one_gpu:
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['NPROC_PER_NODE'] = '1'
@@ -21,11 +21,11 @@ from swift.llm import (
     infer_main, sft_main, app_ui_main, merge_lora
 )
 
-model_type = ModelType.qwen_vl
+model_type = ModelType.qwen_vl_chat
 # mini
-custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
-# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
 
 
 
@@ -34,7 +34,7 @@ sft_args = SftArguments(
     train_dataset_sample=-1,
     custom_train_dataset_path=custom_train_dataset_path,
     num_train_epochs = 1,
-    eval_steps = 10,
+    eval_steps = 200,
     # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
     # save_only_model = False,
     max_length=4096,
