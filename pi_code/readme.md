@@ -73,7 +73,7 @@ Ref: 文件格式参考
 
 
 1. 数据集处理  
-   修改训练数据，加入**60帧滑动窗口**，将历史数据输入训练，同时**修改图片路径**  
+   修改训练数据，加入**60(n可调)帧滑动窗口**，将历史数据输入训练，同时**修改图片路径**  
    修改`/home/ldl/pi_code/DriveLM/challenge/pi_test/pi_transfer_data_history.py`文件实现训练数据转换
    1. 修改图片路径————减小图片路径输入length  
         原始`data/nuscenes/samples`
@@ -84,10 +84,17 @@ Ref: 文件格式参考
         ```
         
         ```
-    
-2. 模型微调处理——暂不修改
+   3. 增加场景描述 
+        根据每个场景的'scene_description', 将其加入到每个场景的QA中
+        ```
+        Q: "Describe the scene."
+        A: scene_description
+        ```
+
+
+2. 模型微调处理——暂不修改，有Bug
    1. 修改模型为`ModelType.internlm_xcomposer2_7b_chat`——更强的上下文理解能力
-   2. 模型`max_length=4096,`
+   2. 模型`max_length=4096,` maybe longer？
    
 3. 模型推理处理
    1. 上下文信息读取，参考`/home/ldl/pi_code/swift/pi_code/infer_qwen_vl.py`

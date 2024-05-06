@@ -1,7 +1,7 @@
 import os
 
 from tqdm import tqdm
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
 os.environ['NPROC_PER_NODE'] = '1'
 
 from swift.llm import (
@@ -18,16 +18,17 @@ import json
 now = datetime.now()
 
 
-model_type = ModelType.qwen_vl
+model_type = ModelType.qwen_vl_chat
 # model_type = ModelType.qwen_vl
 if model_type == ModelType.qwen_vl:
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl/v11-20240430-040911/checkpoint-4200' #加载模型路径
     ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl/v12-20240502-170251/checkpoint-71'
 elif model_type == ModelType.qwen_vl_chat:
     max_his_length = 60
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v2-20240502-164517/checkpoint-71'
+    # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v2-20240502-164517/checkpoint-71'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v4-20240503-103413/checkpoint-3800'
     
-use_mini_data = True
+use_mini_data = False
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
 if use_mini_data:
     infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/mini_trainning_llama.json' #加载数据集路径
@@ -49,6 +50,8 @@ template = get_template(template_type, tokenizer)
 seed_everything(42)
 print("Got model")
 print(f"template.default_system: {template.default_system}")
+template.default_system = 'You are an experienced driver who can answer questions based on perceptual images.'
+print(f"new template.default_system: {template.default_system}")
 # print(model.config)
 model.config.seq_length = 4096
 # raise
@@ -61,8 +64,8 @@ output_file = []
 # 循环提取每个段落的 conversations[0][value] 值
 history = []
 last_id_head = None
-# for i in tqdm(range(len(data[:]))):
-for i in tqdm(range(len(data[:500]))):
+for i in tqdm(range(len(data))):
+# for i in tqdm(range(len(data[:500]))):
     paragraph = data[i]
     ids = paragraph["conversations"][0]["id"]
     id_head = ids.split("_")[:-1]
@@ -81,11 +84,11 @@ for i in tqdm(range(len(data[:500]))):
         start_index = max(0, his_length - max_his_length)
         history = history[start_index:]
         # print(history)
-        # print(value)
+        print(last_line)
         # print(f"token len:{get_length(model, template, str(history))}, {get_length(model, template, value)}")
         response, _ = inference(model, template, value, history)
-        # print(response)
-        # print("-------")
+        print(response)
+        print("-------")
         qa = [last_line, response]
         history.append(qa)
         # print(value)
