@@ -4,6 +4,9 @@ cd pi_code/swift/
 conda activate swift
 ```
 
+# Reinstall after pull
+`pip install -e '.[llm]'`
+
 https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation?tab=readme-ov-file
 
 ## Fine-tuning the model

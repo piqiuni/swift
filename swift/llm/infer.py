@@ -336,6 +336,7 @@ def llm_infer(args: InferArguments) -> None:
                     infer_kwargs['stop_words'] = args.stop_words
                 if args.stream:
                     gen = inference_stream(model, template, query, history, system, **infer_kwargs)
+                    print(model.config.max_length)
                     print_idx = 0
                     for response, new_history in gen:
                         if len(response) > print_idx:

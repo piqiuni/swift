@@ -14,6 +14,7 @@ from swift.tuners import Swift
 from torch.utils.data import Dataset, DataLoader
 from datetime import datetime
 import json
+from pi_code.uts import process_comment_question, default_system
 
 now = datetime.now()
 
@@ -49,8 +50,7 @@ model = Swift.from_pretrained(model, ckpt_dir, inference_mode=True) #加载微�
 template = get_template(template_type, tokenizer)
 seed_everything(42)
 print("Got model")
-print(f"template.default_system: {template.default_system}")
-template.default_system = 'You are an experienced driver who can answer questions based on perceptual images.'
+template.default_system = default_system
 print(f"new template.default_system: {template.default_system}")
 # print(model.config)
 model.config.seq_length = 4096
@@ -64,6 +64,7 @@ output_file = []
 # 循环提取每个段落的 conversations[0][value] 值
 history = []
 last_id_head = None
+max_total_len = 0
 for i in tqdm(range(len(data))):
 # for i in tqdm(range(len(data[:500]))):
     paragraph = data[i]
@@ -74,9 +75,10 @@ for i in tqdm(range(len(data))):
     last_id_head = id_head
     value = paragraph["conversations"][0]["value"]
     lines = value.split("\n")
-    last_line = lines[-1].split("/n")[-1]
-    # value = "\n".join(lines[:-1])
-    # print(value)
+    raw_question = lines[-1]
+    new_question = process_comment_question(raw_question)
+    lines[-1] = new_question
+    value = "".join(lines)
     if model_type == ModelType.qwen_vl:
         response, history = inference(model, template, value)
     elif model_type == ModelType.qwen_vl_chat:
@@ -84,20 +86,25 @@ for i in tqdm(range(len(data))):
         start_index = max(0, his_length - max_his_length)
         history = history[start_index:]
         # print(history)
-        print(last_line)
-        # print(f"token len:{get_length(model, template, str(history))}, {get_length(model, template, value)}")
-        response, _ = inference(model, template, value, history)
-        print(response)
-        print("-------")
-        qa = [last_line, response]
-        history.append(qa)
         # print(value)
-        # print(response)
+        len_his = get_length(model, template, str(history))
+        len_val = get_length(model, template, value)
+        len_total = len_his + len_val
+        max_total_len = max(max_total_len, len_total)
+        print(f"token len: history:{len_his}, value:{len_val}, total:{len_total}")
+        
+        response, _ = inference(model, template, value, history)
+        print(f"raw_question: {raw_question}")
+        print(f"response: {response}")
+        print("-------")
+        
+        qa = [new_question, response]
+        history.append(qa)
     # [['Picture 1:<img>http://modelscope-open.oss-cn-hangzhou.aliyuncs.com/images/road.png</img>\n距离各城市多远？', '马路边距离马路边14公里；阳江边距离马路边62公里；广州边距离马路边293公里。'], ['距离最远的城市是哪？', '距离最远的城市是广州，距离马路边293公里。']]
     
     output_data = {
     "id": ids,
-    "question": last_line,
+    "question": raw_question,
     "answer": response
 }
     output_file.append(output_data)
@@ -106,6 +113,6 @@ with open(save_path, 'w') as file:
     json.dump(output_file, file, indent=4)
 print(f"Done, save to {save_path}")
 
-
+print(f"max_total_len: {max_total_len}")
 
 
