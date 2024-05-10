@@ -56,6 +56,8 @@ cd ~/pi_code/DriveLM/challenge
 python evaluation.py --root_path1 ../../swift/pi_code/output/output_0425.json --root_path2 ./mini_test_eval.json
 
 python evaluation.py --root_path1 ../../swift/pi_code/output/output_0425.json --root_path2 ./test_eval.json
+
+python evaluation.py --root_path1 ../../swift/pi_code/output/output_internlm-xcomposer2-7b-chat_0509_1455.json --root_path2 ./v1_1_val_nus_q_only.json
 ```
 修改 `--root_path1`
 
