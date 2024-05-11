@@ -56,6 +56,7 @@ class TemplateType:
     deepseek = 'deepseek'
     deepseek_coder = 'deepseek-coder'
     deepseek_vl = 'deepseek-vl'
+    deepseek2 = 'deepseek2'
     codefuse_codellama = 'codefuse-codellama'
     codefuse = 'codefuse'
     cogvlm_instruct = 'cogvlm-instruct'
@@ -203,6 +204,8 @@ class Template:
         self.truncation_strategy = truncation_strategy
         self.model = kwargs.get('model', None)
         self.use_loss_scale = kwargs.get('use_loss_scale', False)
+        self.sequence_parallel_size = kwargs.get('sequence_parallel_size', 1)
+
         for key in ['prefix', 'prompt', 'chat_sep', 'suffix', 'prefix_has_system']:
             value = getattr(self, key)
             value = self._preprocess_prompt(tokenizer, value)
@@ -420,6 +423,17 @@ class Template:
             input_ids, attention_mask, labels, loss_scale = pad_and_split_batch(padding_to, input_ids, attention_mask,
                                                                                 labels, loss_scale, self.max_length,
                                                                                 self.tokenizer, rank, world_size)
+
+        bs, seq_len = input_ids.shape
+        position_ids = torch.arange(seq_len).unsqueeze(0).long().repeat(bs, 1)
+
+        if self.sequence_parallel_size > 1:
+            from swift.trainers.xtuner import get_xtuner_sequence_parallel_world_size
+            if get_xtuner_sequence_parallel_world_size() > 1:
+                from swift.trainers.xtuner import pad_and_split_for_sequence_parallel
+                input_ids, labels, position_ids, attention_mask, loss_scale = \
+                    pad_and_split_for_sequence_parallel(
+                        tokenizer, input_ids, labels, position_ids, attention_mask, loss_scale)
 
         res = {
             'input_ids': input_ids,
@@ -674,6 +688,9 @@ register_template(
     TemplateType.deepseek,
     Template([['bos_token_id']], ['User: {{QUERY}}\n\nAssistant:'], [['eos_token_id']], [['eos_token_id']], None,
              [['bos_token_id'], '{{SYSTEM}}\n\n']))
+register_template(
+    TemplateType.deepseek2,
+    Template([[100000]], ['User: {{QUERY}}\n\nAssistant:'], [[100001]], [[100001]], None, [[100000], '{{SYSTEM}}\n\n']))
 
 # ref: https://github.com/facebookresearch/llama/blob/main/llama/generation.py
 LLAMA_DEFAULT_SYSTEM = (
