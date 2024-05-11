@@ -1,6 +1,7 @@
 # Experimental environment: A10, 3090, V100, ...
 # 20GB GPU memory
 import os
+from pi_code.uts import default_system
 
 use_one_gpu = False
 if use_one_gpu:
@@ -24,9 +25,10 @@ from swift.llm import (
 model_type = ModelType.internlm_xcomposer2_7b_chat
 
 # mini
-custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
-# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+custom_train_dataset_path = '~/pi_code/swift/pi_code/history_trainning_llama.json'
 
 sft_args = SftArguments(
     model_type=model_type,
@@ -35,9 +37,11 @@ sft_args = SftArguments(
     # quantization_bit=4,
     # deepspeed='default-zero2',
     # dataset='coco-mini-en',
-    custom_train_dataset_path=custom_train_dataset_path,
-    num_train_epochs = 1,
-    eval_steps = 10,
+    dataset = custom_train_dataset_path,
+    # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
+    system = default_system,
+    num_train_epochs = 3,
+    eval_steps = 200,
     batch_size=1,
     max_length=4096,
     output_dir='./ckp_output')

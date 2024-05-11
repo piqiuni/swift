@@ -1,6 +1,7 @@
 # Experimental environment: A10, 3090, V100, ...
 # 20GB GPU memory
 import os
+from pi_code.uts import default_system
 
 use_one_gpu = False
 if use_one_gpu:
@@ -25,17 +26,18 @@ model_type = ModelType.qwen_vl_chat
 # mini
 # custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
-custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
-
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+custom_train_dataset_path = '~/pi_code/swift/pi_code/history_trainning_llama.json'
 
 
 sft_args = SftArguments(
     model_type=model_type,
     train_dataset_sample=-1,
-    custom_train_dataset_path=custom_train_dataset_path,
-    num_train_epochs = 1,
+    dataset = custom_train_dataset_path,
+    num_train_epochs = 3,
     eval_steps = 200,
     # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
+    system = default_system, 
     # save_only_model = False,
     max_length=4096,
     output_dir='./ckp_output')

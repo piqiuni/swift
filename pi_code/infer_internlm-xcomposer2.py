@@ -23,10 +23,10 @@ if model_type == None:
     ckpt_dir = '' #加载模型路径
 elif model_type == ModelType.internlm_xcomposer2_7b_chat:
     max_his_length = 60
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v10-20240502-202001/checkpoint-60'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v12-20240510-113420/checkpoint-3600'
     
 
-use_mini_data = False
+use_mini_data = True
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
 if use_mini_data:
     infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/mini_trainning_llama.json' #加载数据集路径
