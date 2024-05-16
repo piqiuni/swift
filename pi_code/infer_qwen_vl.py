@@ -18,6 +18,7 @@ from pi_code.uts import process_comment_question, default_system
 
 now = datetime.now()
 
+print_step = False
 
 model_type = ModelType.qwen_vl_chat
 # model_type = ModelType.qwen_vl
@@ -27,7 +28,8 @@ if model_type == ModelType.qwen_vl:
 elif model_type == ModelType.qwen_vl_chat:
     max_his_length = 60
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v2-20240502-164517/checkpoint-71'
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v4-20240503-103413/checkpoint-3800'
+    # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v4-20240503-103413/checkpoint-3800'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v8-20240514-111402/checkpoint-6800'
     
 use_mini_data = False
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
@@ -91,12 +93,13 @@ for i in tqdm(range(len(data))):
         len_val = get_length(model, template, value)
         len_total = len_his + len_val
         max_total_len = max(max_total_len, len_total)
-        print(f"token len: history:{len_his}, value:{len_val}, total:{len_total}")
         
         response, _ = inference(model, template, value, history)
-        print(f"raw_question: {raw_question}")
-        print(f"response: {response}")
-        print("-------")
+        if print_step:
+            print(f"token len: history:{len_his}, value:{len_val}, total:{len_total}")
+            print(f"raw_question: {raw_question}")
+            print(f"response: {response}")
+            print("-------")
         
         qa = [new_question, response]
         history.append(qa)

@@ -5,7 +5,7 @@ from pi_code.uts import default_system
 
 use_one_gpu = False
 if use_one_gpu:
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     os.environ['NPROC_PER_NODE'] = '1'
 else:
     os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
@@ -34,10 +34,11 @@ sft_args = SftArguments(
     model_type=model_type,
     train_dataset_sample=-1,
     dataset = custom_train_dataset_path,
-    num_train_epochs = 3,
+    num_train_epochs = 5,
     eval_steps = 200,
-    # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
+    resume_from_checkpoint = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v8-20240514-111402/checkpoint-6800',
     system = default_system, 
+    logging_steps = 10,
     # save_only_model = False,
     max_length=4096,
     output_dir='./ckp_output')

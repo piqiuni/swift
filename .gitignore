@@ -1,4 +1,5 @@
 samples/
+history_trainning_llama.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

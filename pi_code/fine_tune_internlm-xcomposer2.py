@@ -27,7 +27,7 @@ model_type = ModelType.internlm_xcomposer2_7b_chat
 # mini
 # custom_train_dataset_path = '~/pi_code/swift/pi_code/mini_trainning_llama.json'
 # full
-custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
+# custom_train_dataset_path = '~/pi_code/swift/pi_code/trainning_llama.json'
 custom_train_dataset_path = '~/pi_code/swift/pi_code/history_trainning_llama.json'
 
 sft_args = SftArguments(
@@ -40,6 +40,7 @@ sft_args = SftArguments(
     dataset = custom_train_dataset_path,
     # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
     system = default_system,
+    logging_steps = 10,
     num_train_epochs = 3,
     eval_steps = 200,
     batch_size=1,
