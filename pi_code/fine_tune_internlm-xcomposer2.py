@@ -15,6 +15,7 @@ else:
 os.environ['NCCL_IB_DISABLE'] = '1'
 os.environ['NCCL_P2P_DISABLE'] = '1'
 
+
 import torch
 
 from swift.llm import (
@@ -38,10 +39,10 @@ sft_args = SftArguments(
     # deepspeed='default-zero2',
     # dataset='coco-mini-en',
     dataset = custom_train_dataset_path,
-    # resume_from_checkpoint = 'ckp_output/qwen-vl/v10-20240429-172025/checkpoint-3644',
+    resume_from_checkpoint = 'ckp_output/internlm-xcomposer2-7b-chat/v20-20240522-093615/checkpoint-13400',
     system = default_system,
-    logging_steps = 10,
-    num_train_epochs = 3,
+    logging_steps = 5,
+    num_train_epochs = 10,
     eval_steps = 200,
     batch_size=1,
     max_length=4096,

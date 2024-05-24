@@ -98,10 +98,10 @@ for i in tqdm(range(len(data))):
         if print_step:
             print(f"token len: history:{len_his}, value:{len_val}, total:{len_total}")
             print(f"raw_question: {raw_question}")
-            print(f"response: {response}")
+            print(f"response: {response.strip()}")
             print("-------")
         
-        qa = [new_question, response]
+        qa = [new_question, response.strip()]
         history.append(qa)
     # [['Picture 1:<img>http://modelscope-open.oss-cn-hangzhou.aliyuncs.com/images/road.png</img>\n距离各城市多远？', '马路边距离马路边14公里；阳江边距离马路边62公里；广州边距离马路边293公里。'], ['距离最远的城市是哪？', '距离最远的城市是广州，距离马路边293公里。']]
     

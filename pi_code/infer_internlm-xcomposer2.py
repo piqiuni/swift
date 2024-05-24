@@ -23,10 +23,10 @@ if model_type == None:
     ckpt_dir = '' #加载模型路径
 elif model_type == ModelType.internlm_xcomposer2_7b_chat:
     max_his_length = 60
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v12-20240510-113420/checkpoint-3600'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v20-20240522-093615/checkpoint-13400'
     
 
-use_mini_data = True
+use_mini_data = False
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
 if use_mini_data:
     infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/mini_trainning_llama.json' #加载数据集路径
@@ -66,6 +66,7 @@ output_file = []
 history = []
 last_id_head = None
 max_total_len = 0
+print(len(data))
 for i in tqdm(range(len(data))):
 # for i in tqdm(range(len(data[:500]))):
     paragraph = data[i]
@@ -97,10 +98,10 @@ for i in tqdm(range(len(data))):
         
         response, _ = inference(model, template, value, history)
         print(f"raw_question: {raw_question}")
-        print(f"response: {response}")
+        print(f"response: {response.strip()}")
         print("-------")
         
-        qa = [new_question, response]
+        qa = [new_question, response.strip()]
         history.append(qa)
     # [['Picture 1:<img>http://modelscope-open.oss-cn-hangzhou.aliyuncs.com/images/road.png</img>\n距离各城市多远？', '马路边距离马路边14公里；阳江边距离马路边62公里；广州边距离马路边293公里。'], ['距离最远的城市是哪？', '距离最远的城市是广州，距离马路边293公里。']]
     
