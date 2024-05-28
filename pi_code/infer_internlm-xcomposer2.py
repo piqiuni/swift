@@ -36,7 +36,12 @@ else:
 
 save_folder = './pi_code/output'
 save_path = os.path.join(save_folder, file_name)
-# assert os.path.exists(save_folder)
+config_path = save_path.replace('.json', '_config.yaml')
+config_data = {}
+config_data["model_type"] = str(model_type)
+config_data["ckpt_dir"] = ckpt_dir
+config_data["infer_dataset_path"] = infer_dataset_path
+config_data["save_path"] = save_path
 
 template_type = get_default_template_type(model_type)
 print(f'template_type: {template_type}')  # template_type: qwen
@@ -114,6 +119,8 @@ for i in tqdm(range(len(data))):
 
 with open(save_path, 'w') as file:
     json.dump(output_file, file, indent=4)
+with open(config_path, 'w') as f:
+    yaml.dump(config_data, f, default_flow_style=False)
 print(f"Done, save to {save_path}")
 
 print(f"max_total_len: {max_total_len}")
