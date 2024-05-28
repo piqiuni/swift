@@ -1,5 +1,13 @@
 # LLM Quantization Documentation
-Swift supports using AWQ and GPTQ techniques to quantize models. These two quantization techniques support VLLM inference acceleration, and the quantized models also support QLORA fine-tuning.
+Swift supports model quantization using the techniques of awq, gptq, bnb, hqq, eetq. Among these, awq and gptq quantization techniques support inference acceleration for vllm, and the quantized models support fine-tuning with qlora.
+Note The effect of quantization varies under different commands:
+- During sft lora training, quantization specified for `qlora` is used to reduce the memory required for training.
+- In export, quantization is specified to quantize the model and save it.
+- In infer, quantization is specified for model quantization and inference.
+
+bnb, hqq, and eetq do not require calibration data and offer fast quantization speed. They are used in sft lora training and inference by specifying `--quant_method bnb/hqq/eetq`.
+
+awq and gptq require calibration data and are used in export by specifying `--quant_method awq/gptq`.
 
 ## Table of Contents
 - [Environment Preparation](#environment-preparation)
@@ -36,21 +44,21 @@ In the sft lora training, specify `--quant_method` and `--quantization_bit` to e
 CUDA_VISIBLE_DEVICES=0 swift sft \
     --model_type qwen1half-7b-chat \
     --sft_type lora \
-    --dataset, alpaca-zh#5000 \
+    --dataset alpaca-zh#5000 \
     --quant_method hqq \
     --quantization_bit 4 \
 
 CUDA_VISIBLE_DEVICES=0 swift sft \
     --model_type qwen1half-7b-chat \
     --sft_type lora \
-    --dataset, alpaca-zh#5000 \
+    --dataset alpaca-zh#5000 \
     --quant_method eetq \
     --dtype fp16 \
 
 CUDA_VISIBLE_DEVICES=0 swift sft \
     --model_type qwen1half-7b-chat \
     --sft_type lora \
-    --dataset, alpaca-zh#5000 \
+    --dataset alpaca-zh#5000 \
     --quant_method bnb \
     --quantization_bit 4 \
     --dtype fp16 \
@@ -96,11 +104,11 @@ OMP_NUM_THREADS=14 CUDA_VISIBLE_DEVICES=0 swift export \
     --model_type qwen1half-7b-chat --quant_bits 4 \
     --dataset alpaca-zh alpaca-en sharegpt-gpt4-mini --quant_method gptq
 
-# AWQ: Use custom quantization dataset (don't use the `--custom_val_dataset_path` parameter)
+# AWQ: Use custom quantization dataset
 # Same for GPTQ
 CUDA_VISIBLE_DEVICES=0 swift export \
     --model_type qwen1half-7b-chat --quant_bits 4 \
-    --custom_train_dataset_path xxx.jsonl \
+    --dataset xxx.jsonl \
     --quant_method awq
 
 # Inference using swift quantized model

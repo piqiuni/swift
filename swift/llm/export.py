@@ -22,7 +22,13 @@ def _get_dataset(*args, **kwargs):
     block_size = _args.quant_seqlen
 
     # only use train_dataset
-    dataset = get_dataset(data)[0]
+    dataset = get_dataset(
+        data,
+        0,
+        _args.dataset_seed,
+        check_dataset_strategy=_args.check_dataset_strategy,
+        model_name=_args.model_name,
+        model_author=_args.model_author)[0]
     logger.info(f'quant_dataset: {dataset}')
     dataset = dataset.shuffle()
 
@@ -96,9 +102,6 @@ def llm_export(args: ExportArguments) -> None:
         _args = args
         assert args.quantization_bit == 0
         assert args.sft_type == 'full', 'you need to merge lora'
-        if args.dtype == 'AUTO' and args.torch_dtype is None:
-            args.dtype, args.torch_dtype = 'fp16', torch.float16
-            logger.info(f'Setting args.torch_dtype: {args.torch_dtype}')
         if args.quant_method == 'awq':
             from awq import AutoAWQForCausalLM
             model, template = prepare_model_template(

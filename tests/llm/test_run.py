@@ -39,6 +39,25 @@ class TestRun(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp_dir)
 
+    def test_template(self):
+        if not __name__ == '__main__':
+            # ignore citest error in github
+            return
+        torch.cuda.empty_cache()
+        output = sft_main(
+            SftArguments(
+                model_type=ModelType.qwen1half_1_8b,
+                model_id_or_path='../models/Qwen1.5-1.8B',
+                template_type='qwen',
+                sft_type='full',
+                dataset=f'{DatasetName.jd_sentiment_zh}#200',
+                eval_steps=5))
+        best_model_checkpoint = output['best_model_checkpoint']
+        torch.cuda.empty_cache()
+        result = infer_main(
+            InferArguments(ckpt_dir=best_model_checkpoint, load_dataset_config=True, val_dataset_sample=2))
+        assert len(result['result'][0]['response']) < 20
+
     def test_basic(self):
         output_dir = 'output'
         quantization_bit_list = [0, 4]
@@ -77,6 +96,7 @@ class TestRun(unittest.TestCase):
                 check_dataset_strategy='warning',
                 predict_with_generate=predict_with_generate,
                 dataset=dataset,
+                val_dataset=f'{DatasetName.jd_sentiment_zh}#20',
                 output_dir=output_dir,
                 include_num_input_tokens_seen=True,
                 gradient_checkpointing=True)
@@ -444,7 +464,7 @@ class TestTrainer(unittest.TestCase):
         dataset = MsDataset.load('clue', subset_name='tnews')
         num_labels = max(dataset['train']['label']) + 1
         model = Model.from_pretrained(model_dir, task='text-classification', num_labels=num_labels)
-        train_dataset, val_dataset = dataset['train'].to_hf_dataset(), dataset['validation']
+        train_dataset, val_dataset = dataset['train'].to_hf_dataset(), dataset['validation'].to_hf_dataset()
         train_dataset: HfDataset = train_dataset.select(range(100))
         val_dataset: HfDataset = val_dataset.select(range(20))
 
@@ -481,6 +501,7 @@ class TestTrainer(unittest.TestCase):
                 metric_for_best_model='loss',
                 greater_is_better=False,
                 gradient_accumulation_steps=1,
+                logging_steps=5,
                 eval_steps=10,
                 save_only_model=save_only_model)
         trainer_args._n_gpu = 1

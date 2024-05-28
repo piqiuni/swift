@@ -24,15 +24,15 @@ pip install Pillow
 
 **注意**
 - 如果要使用本地模型文件，加上参数 `--model_id_or_path /path/to/model`
-- 如果你的GPU不支持flash attention, 使用参数`--use_flash_attn false`
+- 如果你的GPU不支持flash attention, 使用参数`--use_flash_attn false`。且对于int8模型，推理时需要指定`dtype --bf16`, 否则可能会出现乱码
 
 ```shell
 # Experimental environment: A100
 # 55GB GPU memory
-CUDA_VISIBLE_DEVICES=0 swift infer --model_type internvl-chat-v1_5
+CUDA_VISIBLE_DEVICES=0 swift infer --model_type internvl-chat-v1_5 --dtype bf16
 
 # 2*30GB GPU memory
-CUDA_VISIBLE_DEVICES=0,1 swift infer --model_type internvl-chat-v1_5
+CUDA_VISIBLE_DEVICES=0,1 swift infer --model_type internvl-chat-v1_5 --dtype bf16
 ```
 
 输出: (支持传入本地路径或URL)
@@ -109,7 +109,7 @@ import torch
 model_type = ModelType.internvl_chat_v1_5
 template_type = get_default_template_type(model_type)
 print(f'template_type: {template_type}')
-model, tokenizer = get_model_tokenizer(model_type, torch.float16,
+model, tokenizer = get_model_tokenizer(model_type, torch.bfloat16,
                                        model_kwargs={'device_map': 'auto'})
 
 # for GPUs that do not support flash attention
@@ -174,14 +174,14 @@ LoRA微调:
 # 80GB GPU memory
 CUDA_VISIBLE_DEVICES=0 swift sft \
     --model_type internvl-chat-v1_5 \
-    --dataset coco-mini-en-2 \
+    --dataset coco-en-2-mini \
 
 # device_map
 # Experimental environment: 2*A100...
 # 2*43GB GPU memory
 CUDA_VISIBLE_DEVICES=0,1 swift sft \
     --model_type  internvl-chat-v1_5 \
-    --dataset coco-mini-en-2 \
+    --dataset coco-en-2-mini \
 
 # ddp + deepspeed-zero2
 # Experimental environment: 2*A100...
@@ -189,7 +189,7 @@ CUDA_VISIBLE_DEVICES=0,1 swift sft \
 NPROC_PER_NODE=2 \
 CUDA_VISIBLE_DEVICES=0,1 swift sft \
     --model_type  internvl-chat-v1_5 \
-    --dataset coco-mini-en-2 \
+    --dataset coco-en-2-mini \
     --deepspeed default-zero2
 ```
 
@@ -200,7 +200,7 @@ CUDA_VISIBLE_DEVICES=0,1 swift sft \
 # 4 * 72 GPU memory
 CUDA_VISIBLE_DEVICES=0,1,2,3 swift sft \
     --model_type internvl-chat-v1_5 \
-    --dataset coco-mini-en-2 \
+    --dataset coco-en-2-mini \
     --sft_type full \
 ```
 
