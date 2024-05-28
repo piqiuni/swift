@@ -32,22 +32,21 @@ model_type = ModelType.internlm_xcomposer2_7b_chat
 custom_train_dataset_path = '~/pi_code/swift/pi_code/history_trainning_llama.json'
 
 sft_args = SftArguments(
-    model_type=model_type,
+    model_type=model_type, # model_type = ModelType.internlm_xcomposer2_7b_chat
     train_dataset_sample=-1,
     # sft_type='lora',
     # quantization_bit=4,
     # deepspeed='default-zero2',
     # dataset='coco-mini-en',
-    dataset = custom_train_dataset_path,
+    dataset = custom_train_dataset_path, # '~/pi_code/swift/pi_code/history_trainning_llama.json'
     resume_from_checkpoint = 'ckp_output/internlm-xcomposer2-7b-chat/v20-20240522-093615/checkpoint-13400',
-    system = default_system,
+    system = default_system,  #'You are an experienced driver who can answer questions based on perceptual images. Reply with only English'
     logging_steps = 5,
     num_train_epochs = 10,
     eval_steps = 200,
     batch_size=1,
     max_length=4096,
     output_dir='./ckp_output')
-# assert os.path.exists(sft_args.output_dir)
 result = sft_main(sft_args)
 best_model_checkpoint = result['best_model_checkpoint']
 print(f'best_model_checkpoint: {best_model_checkpoint}')

@@ -18,7 +18,7 @@ from pi_code.uts import process_comment_question, default_system
 
 now = datetime.now()
 
-print_step = False
+print_step = True
 
 model_type = ModelType.qwen_vl_chat
 # model_type = ModelType.qwen_vl
@@ -29,7 +29,7 @@ elif model_type == ModelType.qwen_vl_chat:
     max_his_length = 60
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v2-20240502-164517/checkpoint-71'
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v4-20240503-103413/checkpoint-3800'
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v8-20240514-111402/checkpoint-6800'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat//v11-20240526-203445/checkpoint-15600'
     
 use_mini_data = False
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
@@ -38,6 +38,9 @@ if use_mini_data:
     file_name = f"mini_output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
 else:
     infer_dataset_path = '/home/ldl/pi_code/swift/pi_code/val_llama.json'
+    
+# infer_dataset_path = "/home/ldl/pi_code/DriveLM/challenge/pi_test/demo_data/demo_history_data.json"
+# file_name = f"demo_output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
 
 save_folder = './pi_code/output'
 save_path = os.path.join(save_folder, file_name)
@@ -82,6 +85,7 @@ for i in tqdm(range(len(data))):
     lines[-1] = new_question
     value = "".join(lines)
     if model_type == ModelType.qwen_vl:
+        print(value, template)
         response, history = inference(model, template, value)
     elif model_type == ModelType.qwen_vl_chat:
         his_length = len(history)
