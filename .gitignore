@@ -1,3 +1,6 @@
+ckp_output/
+samples/
+
 # Byte-compiled / optimized / DLL files
 tmp
 *.ttf
