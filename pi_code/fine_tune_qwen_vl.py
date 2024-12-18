@@ -8,12 +8,13 @@ if use_one_gpu:
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     os.environ['NPROC_PER_NODE'] = '1'
 else:
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
-    os.environ['NPROC_PER_NODE'] = '2'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3'
+    os.environ['NPROC_PER_NODE'] = '4'
 
-os.environ['NCCL_IB_DISABLE'] = '1'
-os.environ['NCCL_P2P_DISABLE'] = '1'
-
+# os.environ['NCCL_IB_DISABLE'] = '1'
+# os.environ['NCCL_P2P_DISABLE'] = '1'
+os.environ['TORCH_USE_CUDA_DSA'] = '1'
+os.environ["CUDA LAUNCH BLOCKING"]="1"
 
 import torch
 
@@ -36,7 +37,7 @@ sft_args = SftArguments(
     dataset = custom_train_dataset_path,
     num_train_epochs = 10,
     eval_steps = 200,
-    resume_from_checkpoint = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v11-20240526-203445/checkpoint-15600',
+    # resume_from_checkpoint = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v11-20240526-203445/checkpoint-15600',
     system = default_system, 
     logging_steps = 10,
     # save_only_model = False,

@@ -1,6 +1,7 @@
 default_system = 'You are an experienced driver who can answer questions based on perceptual images. Reply with only English'
 
 def process_comment_question(question):
+    return question
     if question == "What's your comment on this scene?":
         ques = []
         ques.append("Please describe the current scene.")

@@ -2,7 +2,7 @@ import os
 
 from tqdm import tqdm
 import yaml
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 os.environ['NPROC_PER_NODE'] = '1'
 
 from swift.llm import (
@@ -30,7 +30,9 @@ elif model_type == ModelType.qwen_vl_chat:
     max_his_length = 60
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v2-20240502-164517/checkpoint-71'
     # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v4-20240503-103413/checkpoint-3800'
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat//v11-20240526-203445/checkpoint-15600'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v11-20240526-203445/checkpoint-15600'
+    # ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/qwen-vl-chat/v12-20240527-200115/checkpoint-18200'
+    
     
 use_mini_data = False
 file_name = f"output_{model_type}_{now.strftime('%m%d_%H%M')}.json"
@@ -55,7 +57,8 @@ config_data["save_path"] = save_path
 template_type = get_default_template_type(model_type)
 print(f'template_type: {template_type}')  # template_type: qwen
 
-model, tokenizer = get_model_tokenizer(model_type, model_kwargs={'device_map': 'auto'})
+model_dir = '/home/ldl/.cache/modelscope/hub/qwen/Qwen-VL-Chat/Qwen-VL-Chat'
+model, tokenizer = get_model_tokenizer(model_type, model_kwargs={'device_map': 'auto'}, model_dir=model_dir)
 
 model = Swift.from_pretrained(model, ckpt_dir, inference_mode=True) #加载微调后的模型
 template = get_template(template_type, tokenizer)
@@ -87,7 +90,8 @@ for i in tqdm(range(len(data))):
     value = paragraph["conversations"][0]["value"]
     lines = value.split("\n")
     raw_question = lines[-1]
-    new_question = process_comment_question(raw_question)
+    new_question = raw_question
+    # new_question = process_comment_question(raw_question)
     lines[-1] = new_question
     value = "".join(lines)
     if model_type == ModelType.qwen_vl:

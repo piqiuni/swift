@@ -2,14 +2,14 @@ import os
 
 
 from tqdm import tqdm
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # os.environ['NPROC_PER_NODE'] = '1'
 
 from swift.llm import (
     get_model_tokenizer, get_template, inference, ModelType, get_default_template_type,
 )
 from swift.llm.utils.utils import get_length
-
+import yaml
 from swift.utils import seed_everything
 from swift.tuners import Swift
 from torch.utils.data import Dataset, DataLoader
@@ -23,7 +23,7 @@ if model_type == None:
     ckpt_dir = '' #加载模型路径
 elif model_type == ModelType.internlm_xcomposer2_7b_chat:
     max_his_length = 60
-    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v20-20240522-093615/checkpoint-13400'
+    ckpt_dir = '/home/ldl/pi_code/swift/ckp_output/internlm-xcomposer2-7b-chat/v21-20240524-212353/checkpoint-23490'
     
 
 use_mini_data = False

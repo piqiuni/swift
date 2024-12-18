@@ -13,6 +13,7 @@ model_type = ModelType.internvl_chat_v1_5
 template_type = get_default_template_type(model_type)
 print(f'template_type: {template_type}')
 
+# model_dir = '/home/ldl/.cache/modelscope/hub/AI-ModelScope/InternVL-Chat-V1-5'
 model, tokenizer = get_model_tokenizer(model_type, torch.float16,
                                        model_kwargs={'device_map': 'auto'})
 model.generation_config.max_new_tokens = 256
@@ -40,15 +41,23 @@ input("input")
 
 # 流式
 query = 'In this scenario, what are safe actions to take for the ego vehicle?'
-gen = inference_stream(model, template, query, history) # chat without image
-print_idx = 0
-print(f'query: {query}\nresponse: ', end='')
-for response, history in gen:
-    delta = response[print_idx:]
-    print(delta, end='', flush=True)
-    print_idx = len(response)
+response, history = inference(model, template, query, history, images=images) # chat with image
+print(f'query: {query}')
+print(f'response: {response}')
+
 print()
-print(f'history: {history}')
+print(f"history: {history}")
+
+
+# gen = inference_stream(model, template, query, history) # chat without image
+# print_idx = 0
+# print(f'query: {query}\nresponse: ', end='')
+# for response, history in gen:
+#     delta = response[print_idx:]
+#     print(delta, end='', flush=True)
+#     print_idx = len(response)
+# print()
+# print(f'history: {history}')
 
 """
 query: 距离各城市多远？

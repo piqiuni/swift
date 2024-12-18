@@ -10,10 +10,10 @@ if use_one_gpu:
     os.environ['NPROC_PER_NODE'] = '1'
 else:
     os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
-    os.environ['NPROC_PER_NODE'] = '1'
+    os.environ['NPROC_PER_NODE'] = '2'
 
-os.environ['NCCL_IB_DISABLE'] = '1'
-os.environ['NCCL_P2P_DISABLE'] = '1'
+# os.environ['NCCL_IB_DISABLE'] = '1'
+# os.environ['NCCL_P2P_DISABLE'] = '1'
 
 
 import torch
@@ -39,10 +39,10 @@ sft_args = SftArguments(
     # deepspeed='default-zero2',
     # dataset='coco-mini-en',
     dataset = custom_train_dataset_path, # '~/pi_code/swift/pi_code/history_trainning_llama.json'
-    resume_from_checkpoint = 'ckp_output/internlm-xcomposer2-7b-chat/v20-20240522-093615/checkpoint-13400',
+    resume_from_checkpoint = 'ckp_output/internlm-xcomposer2-7b-chat/v21-20240524-212353/checkpoint-23490',
     system = default_system,  #'You are an experienced driver who can answer questions based on perceptual images. Reply with only English'
-    logging_steps = 5,
-    num_train_epochs = 10,
+    logging_steps = 10,
+    num_train_epochs = 15,
     eval_steps = 200,
     batch_size=1,
     max_length=4096,
